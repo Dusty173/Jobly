@@ -2,9 +2,11 @@
 /** Database setup for jobly. */
 const { Client } = require("pg");
 const { getDatabaseUri } = require("./config");
+const dotenv = require("dotenv");
 
 let db;
 
+dotenv.config({ path: "./.env" });
 if (process.env.NODE_ENV === "production") {
   db = new Client({
     password: "password",
