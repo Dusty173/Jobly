@@ -7,6 +7,7 @@ let db;
 
 if (process.env.NODE_ENV === "production") {
   db = new Client({
+    password: "password",
     connectionString: getDatabaseUri(),
     ssl: {
       rejectUnauthorized: false
@@ -14,12 +15,14 @@ if (process.env.NODE_ENV === "production") {
   });
 } else {
   db = new Client({
+    password: "password",
     connectionString: getDatabaseUri(),
     ssl: {
       rejectUnauthorized: false
     }
   });
 }
-console.log()
+
 db.connect();
+
 module.exports = db;
