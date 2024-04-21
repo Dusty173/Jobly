@@ -1,7 +1,7 @@
 "use strict";
 
 const db = require("../db");
-const { BadRequestError, NotFoundError } = require("../expressError");
+const { BadRequestError, NotFoundError, ExpressError } = require("../expressError");
 const { sqlForPartialUpdate } = require("../helpers/sql");
 
 /** Related functions for companies. */
@@ -87,6 +87,35 @@ class Company {
     return company;
   }
 
+  static async filter(query){
+    const keys = Object.keys(query);
+    if(query.minEmployees > query.maxEmployees){
+      throw new ExpressError("Employee min value cannot exceed max value", 400)
+    }
+    const cols = keys.map((colName, idx) =>
+    colName.includes("min") ? `num_employees>$${idx + 1}` : colName.includes("max") ? `num_employees<$${idx + 1}` :
+      `handle=$${idx + 1}`)
+
+    let filterVals = {
+    setCols: cols.join(" AND "),
+    values: Object.values(query),
+    }
+    const companiesRes = await db.query(
+    `SELECT handle,
+            name,
+            description,
+            num_employees AS "numEmployees",
+            logo_url AS "logoUrl"
+     FROM companies WHERE ${filterVals.setCols}
+      ORDER BY name
+     `, filterVals.values);
+ 
+    if (companiesRes.rows.length === 0) {
+      return new NotFoundError("No results found for this search.", 404);
+    }
+
+  return companiesRes.rows
+  }   
   /** Update company data with `data`.
    *
    * This is a "partial update" --- it's fine if data doesn't contain all the

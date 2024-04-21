@@ -5,7 +5,7 @@
 const jsonschema = require("jsonschema");
 
 const express = require("express");
-const { ensureLoggedIn } = require("../middleware/auth");
+const { ensureLoggedIn, checkAdminOrAuthUser } = require("../middleware/auth");
 const { BadRequestError } = require("../expressError");
 const User = require("../models/user");
 const { createToken } = require("../helpers/tokens");
@@ -115,6 +115,18 @@ router.delete("/:username", ensureLoggedIn, async function (req, res, next) {
     return res.json({ deleted: req.params.username });
   } catch (err) {
     return next(err);
+  }
+});
+
+// POST /users/:username/jobs/:id
+router.post('/users/:username/jobs/:id', checkAdminOrAuthUser, async (req, res, next) => {
+  try {
+      const { username, id } = req.params;
+
+      await User.apply(username, id);
+      res.json({ applied: jobId });
+  } catch (err) {
+      next(err);
   }
 });
 
